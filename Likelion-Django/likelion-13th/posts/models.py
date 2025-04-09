@@ -5,12 +5,11 @@ from accounts.models import User
 # Create your models here.
 # 추상 클래스 정의
 class BaseModel(models.Model):
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True) # 객체를 생성할 때 날짜와 시간 저장
+    updated = models.DateTimeField(auto_now=True)  # 객체를 저장할 때 날짜와 시간 갱신
 
     class Meta:
         abstract = True
-
 
 
 class Post(BaseModel): # BaseModel을 상속받음
@@ -24,8 +23,6 @@ class Post(BaseModel): # BaseModel을 상속받음
     title = models.CharField(max_length=30)
     content = models.TextField()
     status = models.CharField(max_length=15, choices=CHOICES, default='STORED')
-    created = models.DateTimeField(auto_now_add=True) # 객체를 생성할 때 날짜와 시간 저장
-    updated = models.DateTimeField(auto_now=True)  # 객체를 저장할 때 날짜와 시간 갱신
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post')
     categories = models.ManyToManyField('categories.Category', through='PostCategory')
     #categories.Category (모델이 정의된 앱 이름).(모델 클래스 이름)
