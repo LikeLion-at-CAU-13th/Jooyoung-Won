@@ -8,10 +8,11 @@ from rest_framework.views import APIView    # APIView를 사용하기 위해 imp
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import PostSerializer
-import logging
-import json
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from config.permissions import *
 
-class PostList(APIView):
+class PostList(APIView): 
+    permission_classes = [IsTimeNotLate, IsAuthenticatedOrReadOnly] # 로그인 안 하면 작성 X
     def post(self, request, format=None):
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
@@ -26,6 +27,8 @@ class PostList(APIView):
         return Response(serializer.data)
     
 class PostDetail(APIView):
+    permission_classes = [IsTimeNotLate, IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
     def get(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
         serializer = PostSerializer(post)
@@ -33,6 +36,8 @@ class PostDetail(APIView):
     
     def put(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
+        # 객체 레벨 권한은 .get_object()가 호출될 때 실행됨. get_object_or_404()를 쓴다면 수동으로 호출해줘야 함
+        self.check_object_permissions(request, post)  
         serializer = PostSerializer(post, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -41,50 +46,13 @@ class PostDetail(APIView):
     
     def delete(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
+        self.check_object_permissions(request, post)  # 권한 체크 수동
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
 class PostListCategory(APIView):
+    permission_classes = [IsTimeNotLate]
     def get(self, request, category_id):
         posts = Post.objects.filter(categories__id = category_id).order_by('-created')
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
-
-@require_http_methods(["GET"])
-def post_list_category(request, category_id):
-
-    try:
-        logger.info(f"HTTP {request.method} request to {request.build_absolute_uri()}")
-
-        posts_of_category = Post.objects.filter(categories__id = category_id).order_by('-created') #앞에 -를 붙이면 내림차순
-
-        posts_of_category_json = []
-
-        category_name = get_object_or_404(Category, id = category_id).name  #어떤 카테고리로 분류했는지 이름 저장
-
-        for post in posts_of_category:
-
-            post_json = {
-                "id": post.id,
-                "title" : post.title,
-                "content": post.content,
-                "status": post.status,
-                "user": post.user.id,
-            }
-
-            posts_of_category_json.append(post_json)
-
-        return JsonResponse({
-            'status': 200,
-            'message': '특정 카테고리의 게시글 목록 조회 성공',
-            'category': category_name,  #분류한 카테고리 이름 보여줌
-            'data': posts_of_category_json
-        })
-    except Exception as e:
-        logger.error(f"Error occurred while fetching posts for category {category_id}: {e}")
-        return JsonResponse({
-            'status': 500,
-            'message': '특정 카테고리의 게시글 목록 조회 실패',
-            'data': str(e)
-        })
-
