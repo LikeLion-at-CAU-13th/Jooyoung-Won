@@ -9,9 +9,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CommentSerializer
+from config.permissions import IsTimeNotLate
 
 class CommentList(APIView):
-
+    permission_classes = [IsTimeNotLate] 
     def get(self, request, post_id, format=None):
         comments = Comment.objects.all().filter(post__id = post_id) 
         serializer = CommentSerializer(comments, many=True)
