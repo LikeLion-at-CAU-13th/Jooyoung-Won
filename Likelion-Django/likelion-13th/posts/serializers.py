@@ -2,6 +2,7 @@
 
 from rest_framework import serializers
 from .models import Post
+from .models import Image
 
 class PostSerializer(serializers.ModelSerializer):
 
@@ -11,3 +12,8 @@ class PostSerializer(serializers.ModelSerializer):
 	# 모델에서 어떤 필드를 가져올지
 	# 전부 가져오고 싶을 때
     fields = "__all__"
+
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = "__all__"
