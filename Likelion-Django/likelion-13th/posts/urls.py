@@ -10,6 +10,7 @@ urlpatterns = [
     # path('<int:post_id>/comment/', comment_list, name='comment_list'),
 
     path('', PostList.as_view()),   # post 전체 조회
+    #path('<int:id>/', get_post_detail),
     path('<int:post_id>/', PostDetail.as_view()), # post 개별 조회
     path('category/<int:category_id>/', PostListCategory.as_view()),
     path('<int:post_id>/comment/', CommentList.as_view()),

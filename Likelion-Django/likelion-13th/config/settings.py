@@ -89,6 +89,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "allauth.account.middleware.AccountMiddleware",
+    "config.middlewares.ExceptionHandlerMiddleware",  # 커스텀 예외 처리 미들웨어 추가
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -116,13 +117,14 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DB_PW = get_secret("DB_PW")
+LOCAL_DB_PW = get_secret("LOCAL_DB_PW")
 
 # DATABASES = {
 # 	'default': {
 # 		'ENGINE': 'django.db.backends.mysql',
 # 		'NAME': 'likelion13th',
 # 		'USER': 'root', # root로 접속하여 DB를 만들었다면 'root'
-# 		'PASSWORD': DB_PW, # 비밀번호는 secrets.json에 저장
+# 		'PASSWORD': LOCAL_DB_PW, # 비밀번호는 secrets.json에 저장
 # 		'HOST': 'localhost',
 # 		'PORT': '3306',
 # 	}
@@ -235,6 +237,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    # 커스텀 예외 처리 함수 지정
+    'EXCEPTION_HANDLER': 'config.custom_exception_handler.custom_exception_handler',
 }
 
 REST_USE_JWT = True

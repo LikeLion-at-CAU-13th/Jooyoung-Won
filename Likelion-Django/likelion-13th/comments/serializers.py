@@ -11,3 +11,8 @@ class CommentSerializer(serializers.ModelSerializer):
 	# 모델에서 어떤 필드를 가져올지
 	# 전부 가져오고 싶을 때
     fields = "__all__"
+
+  def validate_content(self, value):
+    if len(value.strip()) < 15: # strip: 문자열 양쪽 끝 공백 제거
+        raise serializers.ValidationError("댓글은 최소 15자 이상 작성해야 합니다.")
+    return value

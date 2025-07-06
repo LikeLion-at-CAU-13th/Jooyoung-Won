@@ -18,9 +18,10 @@ from drf_yasg import openapi
 import boto3
 import uuid
 from rest_framework.parsers import MultiPartParser, FormParser
+from config.custom_exceptions import *
 
 class PostList(APIView): 
-    permission_classes = [IsTimeNotLate, IsAuthenticatedOrReadOnly] # 로그인 안 하면 작성 X
+    #permission_classes = [IsTimeNotLate, IsAuthenticatedOrReadOnly] # 로그인 안 하면 작성 X
     @swagger_auto_schema(
         operation_summary="게시글 생성",
         operation_description="새로운 게시글을 생성합니다.",
@@ -29,10 +30,10 @@ class PostList(APIView):
     )
     def post(self, request, format=None):
         serializer = PostSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_summary="게시글 목록 조회",
@@ -46,7 +47,7 @@ class PostList(APIView):
         return Response(serializer.data)
     
 class PostDetail(APIView):
-    permission_classes = [IsTimeNotLate, IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    #permission_classes = [IsTimeNotLate, IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     @swagger_auto_schema(
         operation_summary="게시글 상세 조회",
@@ -85,8 +86,26 @@ class PostDetail(APIView):
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+
+@require_http_methods(["GET"])
+def get_post_detail(request, id):
+    try:
+        post = Post.objects.get(id=id)
+        post_detail_json = {
+            "id" : post.id,
+            "title" : post.title,
+            "content" : post.content,
+            "status" : post.status,
+            "user" : post.user.username
+        }
+        return JsonResponse({
+            "status" : 200,
+            "data": post_detail_json})
+    except Post.DoesNotExist:
+        raise PostNotFoundException
+    
 class PostListCategory(APIView):
-    permission_classes = [IsTimeNotLate]
+    #permission_classes = [IsTimeNotLate]
     @swagger_auto_schema(
         operation_summary="카테고리별 게시글 목록 조회",
         operation_description="카테고리별 게시글을 조회합니다.",
